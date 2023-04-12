@@ -56,7 +56,12 @@ const Customizer = () => {
         state.isLogoTexture = true;
         state.isFullTexture = false;
     }
+    //after changing the filter tab, set the activeFilterTab state
+    // setActiveFilterTab((prevState) => {
+    //   return {}
+    // })
   };
+
   //read file and pass it to handleDecals
   const readFile = (type) => {
     reader(file).then((res) => {
@@ -100,7 +105,15 @@ const Customizer = () => {
 
           <motion.div className="filtertabs-container" {...slideAnimation("up")}>
             {FilterTabs.map((tab) => (
-              <Tab key={tab.name} tab={tab} isFilterTab isActiveTab="" handleClick={() => {}} />
+              <Tab
+                key={tab.name}
+                tab={tab}
+                isFilterTab
+                isActiveTab={activeFilterTab[tab.name]}
+                handleClick={() => {
+                  handleActiveFilterTab(tab.name);
+                }}
+              />
             ))}
           </motion.div>
         </>
