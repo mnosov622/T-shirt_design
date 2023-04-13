@@ -1,6 +1,7 @@
+import React, { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import React, { useEffect, useState } from "react";
 import { useSnapshot } from "valtio";
+
 import config from "../config/config";
 import state from "../store";
 import { download } from "../assets";
@@ -13,6 +14,7 @@ const Customizer = () => {
   const snap = useSnapshot(state);
 
   const [file, setFile] = useState("");
+
   const [prompt, setPrompt] = useState("");
   const [generatingImg, setGeneratingImg] = useState(false);
 
@@ -22,22 +24,49 @@ const Customizer = () => {
     stylishShirt: false,
   });
 
-  //show tab content  depeding on the tab clicked
-  const generateTabContent = (tab) => {
+  // show tab content depending on the activeTab
+  const generateTabContent = () => {
     switch (activeEditorTab) {
       case "colorpicker":
         return <ColorPicker />;
       case "filepicker":
         return <FilePicker file={file} setFile={setFile} readFile={readFile} />;
-      case "aipicker":
-        return <AIPicker />;
       default:
         return null;
     }
   };
 
+  // const handleSubmit = async (type) => {
+  //   if (!prompt) return alert("Please enter a prompt");
+
+  //   try {
+  //     setGeneratingImg(true);
+
+  //     const response = await fetch("http://localhost:8080/api/v1/dalle", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({
+  //         prompt,
+  //       }),
+  //     });
+
+  //     const data = await response.json();
+  //     console.log("data is", data);
+
+  //     handleDecals(type, `data:image/png;base64,${data.photo}`);
+  //   } catch (error) {
+  //     alert(error);
+  //   } finally {
+  //     setGeneratingImg(false);
+  //     setActiveEditorTab("");
+  //   }
+  // };
+
   const handleDecals = (type, result) => {
     const decalType = DecalTypes[type];
+
     state[decalType.stateProperty] = result;
 
     if (!activeFilterTab[decalType.filterTab]) {
@@ -52,20 +81,26 @@ const Customizer = () => {
         break;
       case "stylishShirt":
         state.isFullTexture = !activeFilterTab[tabName];
+        break;
       default:
         state.isLogoTexture = true;
         state.isFullTexture = false;
+        break;
     }
-    //after changing the filter tab, set the activeFilterTab state
-    // setActiveFilterTab((prevState) => {
-    //   return {}
-    // })
+
+    // after setting the state, activeFilterTab is updated
+
+    setActiveFilterTab((prevState) => {
+      return {
+        ...prevState,
+        [tabName]: !prevState[tabName],
+      };
+    });
   };
 
-  //read file and pass it to handleDecals
   const readFile = (type) => {
-    reader(file).then((res) => {
-      handleDecals(type, res);
+    reader(file).then((result) => {
+      handleDecals(type, result);
       setActiveEditorTab("");
     });
   };
@@ -82,18 +117,14 @@ const Customizer = () => {
             <div className="flex items-center min-h-screen">
               <div className="editortabs-container tabs">
                 {EditorTabs.map((tab) => (
-                  <Tab
-                    key={tab.name}
-                    tab={tab}
-                    handleClick={() => {
-                      setActiveEditorTab(tab.name);
-                    }}
-                  />
+                  <Tab key={tab.name} tab={tab} handleClick={() => setActiveEditorTab(tab.name)} />
                 ))}
+
                 {generateTabContent()}
               </div>
             </div>
           </motion.div>
+
           <motion.div className="absolute z-10 top-5 right-5" {...fadeAnimation}>
             <CustomButton
               type="filled"
@@ -110,9 +141,7 @@ const Customizer = () => {
                 tab={tab}
                 isFilterTab
                 isActiveTab={activeFilterTab[tab.name]}
-                handleClick={() => {
-                  handleActiveFilterTab(tab.name);
-                }}
+                handleClick={() => handleActiveFilterTab(tab.name)}
               />
             ))}
           </motion.div>
